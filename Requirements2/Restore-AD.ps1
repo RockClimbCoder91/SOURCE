@@ -35,12 +35,12 @@ if ($ou) {
 
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
-
-        # Exit the script after successful deletion
-        exit
     } catch {
-        Write-Output "An error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
     }
+
+    # Exit the script after successful deletion
+    exit
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
 }
