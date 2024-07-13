@@ -6,17 +6,15 @@ $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 
 # Check if the OU exists
-Write-Output "Searching for the Organizational Unit (OU) named '$ouName'..."
-$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
+$ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
-if ($ouExists) {
-    # OU exists
+if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
-
+    Write-Output "Distinguished Name: $($ou.DistinguishedName)"
+    
     try {
         # Retrieve the DistinguishedName of the OU
-        $ouPath = $ouExists.DistinguishedName
-        Write-Output "OU DistinguishedName: $ouPath"
+        $ouPath = $ou.DistinguishedName
 
         # Retrieve all child objects within the OU
         $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
@@ -33,6 +31,5 @@ if ($ouExists) {
         Write-Output "Failed to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
     }
 } else {
-    # OU does not exist
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
 }
