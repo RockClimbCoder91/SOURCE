@@ -35,11 +35,16 @@ if ($ou) {
 
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
+
     } catch {
-        Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        if ($_.Exception.Message -like "*Directory object not found*") {
+            Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
+        } else {
+            Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        }
     }
 
-    # Exit the script after successful deletion
+    # Exit the script after successful deletion or known expected error
     exit
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
