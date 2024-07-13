@@ -1,12 +1,13 @@
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
-# Define the OU name
+# Define the OU name and domain components
 $ouName = "Finance"
-$ouPath = "OU=$ouName,DC=consultingfirm,DC=com"  # Adjust to your domain structure
+$domainComponents = "DC=consultingfirm,DC=com"
 
 # Check if the OU exists
-$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase "DC=consultingfirm,DC=com" -ErrorAction SilentlyContinue
+Write-Output "Searching for the Organizational Unit (OU) named '$ouName'..."
+$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
 if ($ouExists) {
     # OU exists
@@ -15,6 +16,7 @@ if ($ouExists) {
     try {
         # Retrieve the DistinguishedName of the OU
         $ouPath = $ouExists.DistinguishedName
+        Write-Output "OU DistinguishedName: $ouPath"
 
         # Retrieve all child objects within the OU
         $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
