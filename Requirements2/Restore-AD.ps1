@@ -28,8 +28,12 @@ if ($ou) {
         # Delete the OU
         Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
         Write-Output "The Organizational Unit (OU) named '$ouName' has been deleted."
+
+        # Exit the script after deletion
+        exit
     } catch {
         Write-Output "Failed to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        exit 1
     }
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
