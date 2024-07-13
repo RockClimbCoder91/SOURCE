@@ -1,45 +1,38 @@
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
-# Define the domain components
+# Define the OU name and domain components
+$ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 
-# List all OUs under the domain
-$allOUs = Get-ADOrganizationalUnit -Filter * -SearchBase $domainComponents
-$allOUs | ForEach-Object {
-    Write-Output "OU Name: $($_.Name)"
-    Write-Output "DistinguishedName: $($_.DistinguishedName)"
-    Write-Output "--------------------"
-}
+# Check if the OU exists
+Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
+$ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
-# # Import the Active Directory module
-# Import-Module ActiveDirectory
-
-# # Define the exact DistinguishedName of the Finance OU
-# $ouPath = "OU=Finance,DC=consultingfirm,DC=com"  # Replace with the exact DistinguishedName
-
-# # Check if the OU exists
-# $ou = Get-ADOrganizationalUnit -Identity $ouPath -ErrorAction SilentlyContinue
-
-# if ($ou) {
-#     Write-Output "The Organizational Unit (OU) named 'Finance' exists."
-#     Write-Output "Distinguished Name: $($ou.DistinguishedName)"
+if ($ou) {
+    # OU exists
+    Write-Output "The Organizational Unit (OU) named '$ouName' exists."
+    Write-Output "Distinguished Name: $($ou.DistinguishedName)"
     
-#     try {
-#         # Retrieve all child objects within the OU
-#         $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
+    try {
+        # Retrieve the DistinguishedName of the OU
+        $ouPath = $ou.DistinguishedName
 
-#         # Remove all child objects
-#         foreach ($child in $childObjects) {
-#             Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false -Recursive
-#         }
+        # Retrieve all child objects within the OU
+        $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
 
-#         # Delete the OU
-#         Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
-#         Write-Output "The Organizational Unit (OU) named 'Finance' has been deleted."
-#     } catch {
-#         Write-Output "Failed to delete the Organizational Unit (OU) named 'Finance'. Error: $_"
-#     }
-# } else {
-#     Write-Output "The Organizational Unit (OU) named 'Finance' does not exist."
-# }
+        # Remove all child objects
+        foreach ($child in $childObjects) {
+            Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false -Recursive
+        }
+
+        # Delete the OU
+        Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
+        Write-Output "The Organizational Unit (OU) named '$ouName' has been deleted."
+    } catch {
+        Write-Output "Failed to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+    }
+} else {
+    # OU does not exist
+    Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
+}
