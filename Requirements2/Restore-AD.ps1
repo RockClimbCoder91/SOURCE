@@ -5,6 +5,14 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 
+# Function to remove all child objects within the OU
+function Remove-ChildObjects($ouPath) {
+    $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
+    foreach ($child in $childObjects) {
+        Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false -Recursive
+    }
+}
+
 # Check if the OU exists
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
@@ -17,22 +25,21 @@ if ($ou) {
         # Retrieve the DistinguishedName of the OU
         $ouPath = $ou.DistinguishedName
 
-        # Retrieve all child objects within the OU
-        $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
-
-        # Remove all child objects
-        foreach ($child in $childObjects) {
-            Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false -Recursive
-        }
+        # Remove all child objects within the OU
+        Write-Output "Removing all child objects within the OU..."
+        Remove-ChildObjects -ouPath $ouPath
 
         # Delete the OU
+        Write-Output "Deleting the Organizational Unit (OU) named '$ouName'..."
         Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
-        Write-Output "The Organizational Unit (OU) named '$ouName' has been deleted."
 
-        # Exit the script after deletion
+        # Confirm deletion
+        Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
+
+        # Exit the script after successful deletion
         exit
     } catch {
-        Write-Output "Failed to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        Write-Output "An error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
     }
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
