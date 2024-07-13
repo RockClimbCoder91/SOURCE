@@ -33,7 +33,6 @@ if ($ou) {
         exit
     } catch {
         Write-Output "Failed to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
-        exit 1
     }
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
