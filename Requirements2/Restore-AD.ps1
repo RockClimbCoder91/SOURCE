@@ -3,9 +3,10 @@ Import-Module ActiveDirectory
 
 # Define the OU name
 $ouName = "Finance"
+$ouPath = "OU=$ouName,DC=consultingfirm,DC=com"  # Adjust to your domain structure
 
 # Check if the OU exists
-$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -ErrorAction SilentlyContinue
+$ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase "DC=consultingfirm,DC=com" -ErrorAction SilentlyContinue
 
 if ($ouExists) {
     # OU exists
