@@ -34,3 +34,6 @@ if ($ou) {
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
 }
+
+# End of script to prevent any further checks or actions
+exit
