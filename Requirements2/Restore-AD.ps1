@@ -13,6 +13,13 @@ function Remove-ChildObjects($ouPath) {
     }
 }
 
+# Function to create the OU
+function Create-OU($ouName, $domainComponents) {
+    $ouPath = "OU=$ouName,$domainComponents"
+    New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
+    Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
+}
+
 # Check if the OU exists
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
@@ -36,6 +43,9 @@ if ($ou) {
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
 
+        # Create the OU
+        Create-OU -ouName $ouName -domainComponents $domainComponents
+
     } catch {
         if ($_.Exception.Message -like "*Directory object not found*") {
             Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
@@ -48,7 +58,9 @@ if ($ou) {
     exit
 } else {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
+    # Create the OU
+    Create-OU -ouName $ouName -domainComponents $domainComponents
 }
 
-#End of script to prevent any further checks or actions
+# End of script to prevent any further checks or actions
 exit
