@@ -1,3 +1,5 @@
+#Geno Pickerign - 000816898
+
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
