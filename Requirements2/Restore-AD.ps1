@@ -4,6 +4,8 @@ Import-Module ActiveDirectory
 # Define the OU name and domain components
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
+$ouPath = "OU=$ouName,$domainComponents"
+$csvFilePath = "C:\SOURCE\Requirements2\financePersonnel.csv" # Update the path to your CSV file
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
@@ -18,6 +20,31 @@ function Create-OU($ouName, $domainComponents) {
     $ouPath = "OU=$ouName,$domainComponents"
     New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
     Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
+}
+
+# Function to import users from CSV and add to the Finance OU
+function Import-Users($csvFilePath, $ouPath) {
+    $users = Import-Csv -Path $csvFilePath
+    foreach ($user in $users) {
+        $firstName = $user.FirstName
+        $lastName = $user.LastName
+        $displayName = "$firstName $lastName"
+        $postalCode = $user.PostalCode
+        $officePhone = $user.OfficePhone
+        $mobilePhone = $user.MobilePhone
+
+        $samAccountName = $firstName.Substring(0,1) + $lastName  # Example of generating a unique SAM account name
+        $userPrincipalName = "$samAccountName@consultingfirm.com"
+
+        # Create the user
+        New-ADUser -GivenName $firstName -Surname $lastName -DisplayName $displayName `
+                   -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
+                   -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
+                   -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
+                   -Enabled $true
+
+        Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
+    }
 }
 
 # Check if the OU exists
@@ -46,6 +73,9 @@ if ($ou) {
         # Create the OU
         Create-OU -ouName $ouName -domainComponents $domainComponents
 
+        # Import users from CSV
+        Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
+
     } catch {
         if ($_.Exception.Message -like "*Directory object not found*") {
             Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
@@ -60,6 +90,9 @@ if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
     # Create the OU
     Create-OU -ouName $ouName -domainComponents $domainComponents
+
+    # Import users from CSV
+    Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 }
 
 # End of script to prevent any further checks or actions
