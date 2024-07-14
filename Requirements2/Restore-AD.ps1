@@ -26,14 +26,13 @@ function Create-OU($ouName, $domainComponents) {
 function Import-Users($csvFilePath, $ouPath) {
     $users = Import-Csv -Path $csvFilePath
     foreach ($user in $users) {
-        $firstName = $user.FirstName
-        $lastName = $user.LastName
+        $firstName = $user.First_Name
+        $lastName = $user.Last_Name
         $displayName = "$firstName $lastName"
         $postalCode = $user.PostalCode
         $officePhone = $user.OfficePhone
         $mobilePhone = $user.MobilePhone
-
-        $samAccountName = $firstName.Substring(0,1) + $lastName  # Example of generating a unique SAM account name
+        $samAccountName = $user.samAccount
         $userPrincipalName = "$samAccountName@consultingfirm.com"
 
         # Create the user
