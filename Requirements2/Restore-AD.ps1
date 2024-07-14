@@ -5,7 +5,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $ouPath = "OU=$ouName,$domainComponents"
-$csvFilePath = "C:\SOURCE\Requirements2\financePersonnel.csv" # Update the path to your CSV file
+$csvFilePath = "C:\Path\To\Requirements2\financePersonnel.csv" # Update the path to your CSV file
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
@@ -36,7 +36,7 @@ function Import-Users($csvFilePath, $ouPath) {
         $userPrincipalName = "$samAccountName@consultingfirm.com"
 
         # Create the user
-        New-ADUser -GivenName $firstName -Surname $lastName -DisplayName $displayName `
+        New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
                    -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
                    -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
                    -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
