@@ -4,7 +4,7 @@
 $databaseName = "ClientDB"
 
 # Define the SQL Server instance
-$serverInstance = "localhost" # Change this to your SQL Server instance name
+$serverInstance = "SRV19-PRIMARY\SQLEXPRESS" # Change this to your SQL Server instance name
 
 try {
     # Check if the database exists
@@ -19,14 +19,14 @@ try {
     END
     "@
 
-    $checkDbResult = Invoke-Sqlcmd -ServerInstance $serverInstance -Query $checkDbQuery
+    $checkDbResult = Invoke-Sqlcmd -ServerInstance $serverInstance -Query $checkDbQuery -ErrorAction Stop
 
     if ($checkDbResult.DatabaseExists -eq 1) {
         Write-Host "The database '$databaseName' exists."
 
         # Delete the database
         $dropDbQuery = "DROP DATABASE [$databaseName];"
-        Invoke-Sqlcmd -ServerInstance $serverInstance -Query $dropDbQuery
+        Invoke-Sqlcmd -ServerInstance $serverInstance -Query $dropDbQuery -ErrorAction Stop
         Write-Host "The database '$databaseName' was deleted."
     } else {
         Write-Host "The database '$databaseName' does not exist."
