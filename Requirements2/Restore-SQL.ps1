@@ -9,15 +9,15 @@ $serverInstance = "SRV19-PRIMARY\SQLEXPRESS" # Change this to your SQL Server in
 try {
     # Check if the database exists
     $checkDbQuery = @"
-    IF EXISTS (SELECT name FROM sys.databases WHERE name = N'$databaseName')
-    BEGIN
-        SELECT 1 AS DatabaseExists
-    END
-    ELSE
-    BEGIN
-        SELECT 0 AS DatabaseExists
-    END
-    "@
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'$databaseName')
+BEGIN
+    SELECT 1 AS DatabaseExists
+END
+ELSE
+BEGIN
+    SELECT 0 AS DatabaseExists
+END
+"@
 
     $checkDbResult = Invoke-Sqlcmd -ServerInstance $serverInstance -Query $checkDbQuery -ErrorAction Stop
 
