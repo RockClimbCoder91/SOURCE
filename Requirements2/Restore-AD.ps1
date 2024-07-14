@@ -5,7 +5,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $ouPath = "OU=$ouName,$domainComponents"
-$csvFilePath = "C:\Path\To\Requirements2\financePersonnel.csv" # Update the path to your CSV file
+$csvFilePath = "C:\SOURCE\Requirements2\financePersonnel.csv" # Update the path to your CSV file
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
@@ -93,6 +93,9 @@ if ($ou) {
     # Import users from CSV
     Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 }
+
+# Generate the output file for submission
+Get-ADUser -Filter * -SearchBase "OU=Finance,DC=consultingfirm,DC=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Export-Csv -Path .\AdResults.csv -NoTypeInformation
 
 # End of script to prevent any further checks or actions
 exit
