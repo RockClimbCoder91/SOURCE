@@ -19,8 +19,10 @@ BEGIN
 END
 "@
 
+    # Execute the query to check if the database exists
     $checkDbResult = Invoke-Sqlcmd -ServerInstance $serverInstance -Query $checkDbQuery -ErrorAction Stop
 
+    # Check the result and delete the database if it exists
     if ($checkDbResult.DatabaseExists -eq 1) {
         Write-Host "The database '$databaseName' exists."
 
@@ -34,3 +36,4 @@ END
 } catch {
     Write-Host "An error occurred: $_"
 }
+
