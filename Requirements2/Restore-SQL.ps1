@@ -33,7 +33,12 @@ END
     } else {
         Write-Host "The database '$databaseName' does not exist."
     }
+
+    # Create the database
+    $createDbQuery = "CREATE DATABASE [$databaseName];"
+    Invoke-Sqlcmd -ServerInstance $serverInstance -Query $createDbQuery -ErrorAction Stop
+    Write-Host "The database '$databaseName' was created."
+
 } catch {
     Write-Host "An error occurred: $_"
 }
-
