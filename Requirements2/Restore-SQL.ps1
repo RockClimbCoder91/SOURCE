@@ -3,6 +3,9 @@
 # Define the database name
 $databaseName = "ClientDB"
 
+# Define the database name
+$databaseName = "ClientDB"
+
 # Define the SQL Server instance
 $serverInstance = "SRV19-PRIMARY\SQLEXPRESS" # Change this to your SQL Server instance name
 
@@ -38,6 +41,21 @@ END
     $createDbQuery = "CREATE DATABASE [$databaseName];"
     Invoke-Sqlcmd -ServerInstance $serverInstance -Query $createDbQuery -ErrorAction Stop
     Write-Host "The database '$databaseName' was created."
+
+    # Create the table in the new database
+    $createTableQuery = @"
+USE [$databaseName];
+CREATE TABLE Client_A_Contacts (
+    ContactID INT PRIMARY KEY IDENTITY(1,1),
+    FirstName NVARCHAR(50),
+    LastName NVARCHAR(50),
+    Email NVARCHAR(100),
+    Phone NVARCHAR(15),
+    Address NVARCHAR(255)
+);
+"@
+    Invoke-Sqlcmd -ServerInstance $serverInstance -Query $createTableQuery -ErrorAction Stop
+    Write-Host "The table 'Client_A_Contacts' was created in the database '$databaseName'."
 
 } catch {
     Write-Host "An error occurred: $_"

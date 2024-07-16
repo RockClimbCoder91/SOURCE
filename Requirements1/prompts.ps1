@@ -1,15 +1,15 @@
-#Geno Pickerign - 000816898
+# Geno Pickerign - 000816898
 
-# Define the path to the Requirements1 folder
-$requirementsPath = "C:\SOURCE\Requirements1"
+# Get the directory of the currently running script
+$scriptDirectory = $PSScriptRoot
 
 # Function to append log files with the current date
 function Append-LogFiles {
     try {
-        $logFiles = Get-ChildItem -Path $requirementsPath -Filter "*.log"
+        $logFiles = Get-ChildItem -Path $scriptDirectory -Filter "*.log"
         $currentDate = Get-Date -Format "yyyy-MM-dd"
         $logContent = "$currentDate`n" + ($logFiles | Out-String)
-        Add-Content -Path "$requirementsPath\DailyLog.txt" -Value $logContent
+        Add-Content -Path "$scriptDirectory\DailyLog.txt" -Value $logContent
     } catch [System.OutOfMemoryException] {
         Write-Host "Error: Out of memory while appending log files."
     } catch {
@@ -20,8 +20,8 @@ function Append-LogFiles {
 # Function to list files in tabular format
 function List-Files {
     try {
-        $files = Get-ChildItem -Path $requirementsPath | Sort-Object Name
-        $files | Format-Table -AutoSize | Out-File "$requirementsPath\C916contents.txt"
+        $files = Get-ChildItem -Path $scriptDirectory | Sort-Object Name
+        $files | Format-Table -AutoSize | Out-File "$scriptDirectory\C916contents.txt"
     } catch [System.OutOfMemoryException] {
         Write-Host "Error: Out of memory while listing files."
     } catch {
@@ -29,10 +29,19 @@ function List-Files {
     }
 }
 
-# Function to get CPU and memory usage
+# Function to get overall system CPU and memory usage
 function Get-CPU-Memory {
     try {
-        Get-Process | Select-Object -Property Name, @{Name="CPU";Expression={[math]::Round($_.CPU, 2)}}, @{Name="Memory (MB)";Expression={[math]::Round($_.WorkingSet / 1MB, 2)}} | Format-Table -AutoSize
+        $cpu = Get-CimInstance -ClassName Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select-Object -ExpandProperty Average
+        $memory = Get-CimInstance -ClassName Win32_OperatingSystem
+        $totalMemory = [math]::round($memory.TotalVisibleMemorySize / 1MB, 2)
+        $freeMemory = [math]::round($memory.FreePhysicalMemory / 1MB, 2)
+        $usedMemory = $totalMemory - $freeMemory
+
+        Write-Host ("CPU Usage: {0}%" -f $cpu)
+        Write-Host ("Total Memory: {0} MB" -f $totalMemory)
+        Write-Host ("Used Memory: {0} MB" -f $usedMemory)
+        Write-Host ("Free Memory: {0} MB" -f $freeMemory)
     } catch [System.OutOfMemoryException] {
         Write-Host "Error: Out of memory while getting CPU and memory usage."
     } catch {
