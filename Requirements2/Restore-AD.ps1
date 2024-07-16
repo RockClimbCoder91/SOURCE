@@ -1,5 +1,3 @@
-#Geno Pickerign - 000816898
-
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
@@ -7,7 +5,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $ouPath = "OU=$ouName,$domainComponents"
-$csvFilePath = "C:\Path\To\Requirements2\financePersonnel.csv" # Update the path to your CSV file
+$csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
