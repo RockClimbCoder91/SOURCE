@@ -58,6 +58,7 @@ function Disable-DeletionProtection($ouPath) {
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
+$ouDeleted = $false
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
     Write-Output "Distinguished Name: $($ou.DistinguishedName)"
@@ -79,11 +80,20 @@ if ($ou) {
 
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
-
+        $ouDeleted = $true
     } catch {
-        Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
-        exit 1
+        if ($_.Exception.Message -like "*Directory object not found*") {
+            Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
+            $ouDeleted = $true
+        } else {
+            Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+            exit 1
+        }
     }
+}
+
+if (-not $ouDeleted) {
+    Write-Output "Proceeding to create the OU and import users."
 }
 
 # Create the OU
