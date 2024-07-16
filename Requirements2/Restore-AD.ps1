@@ -1,10 +1,11 @@
+#Geno Pickerign - 000816898
+
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
 # Define the OU name and domain components
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
-$ouPath = "OU=$ouName,$domainComponents"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
 
 # Function to remove all child objects within the OU
@@ -60,7 +61,7 @@ $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainC
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
     Write-Output "Distinguished Name: $($ou.DistinguishedName)"
-    
+
     try {
         # Retrieve the DistinguishedName of the OU
         $ouPath = $ou.DistinguishedName
@@ -79,30 +80,17 @@ if ($ou) {
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
 
-        # Create the OU
-        Create-OU -ouName $ouName -domainComponents $domainComponents
-
-        # Import users from CSV
-        Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
-
     } catch {
-        if ($_.Exception.Message -like "*Directory object not found*") {
-            Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
-        } else {
-            Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
-        }
+        Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
+        exit 1
     }
-
-    # Exit the script after successful deletion or known expected error
-    exit
-} else {
-    Write-Output "The Organizational Unit (OU) named '$ouName' does not exist."
-    # Create the OU
-    Create-OU -ouName $ouName -domainComponents $domainComponents
-
-    # Import users from CSV
-    Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 }
+
+# Create the OU
+Create-OU -ouName $ouName -domainComponents $domainComponents
+
+# Import users from CSV
+Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
 Get-ADUser -Filter * -SearchBase "OU=Finance,DC=consultingfirm,DC=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Out-File -FilePath .\AdResults.txt
