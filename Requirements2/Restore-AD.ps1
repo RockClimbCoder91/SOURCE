@@ -48,6 +48,13 @@ function Import-Users($csvFilePath, $ouPath) {
     }
 }
 
+# Function to disable protection from accidental deletion
+function Disable-DeletionProtection($ouPath) {
+    $ou = Get-ADOrganizationalUnit -Identity $ouPath
+    $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
+    Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
+}
+
 # Check if the OU exists
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
@@ -59,6 +66,9 @@ if ($ou) {
     try {
         # Retrieve the DistinguishedName of the OU
         $ouPath = $ou.DistinguishedName
+
+        # Disable deletion protection
+        Disable-DeletionProtection -ouPath $ouPath
 
         # Remove all child objects within the OU
         Write-Output "Removing all child objects within the OU..."
