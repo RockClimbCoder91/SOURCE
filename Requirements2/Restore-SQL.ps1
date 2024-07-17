@@ -88,6 +88,13 @@ VALUES ('$firstName', '$lastName', '$city', '$county', '$zip', '$officePhone', '
 
     Write-Host "Data from '$csvFilePath' has been inserted into the table 'Client_A_Contacts'."
 
+    # Generate the output file SqlResults.txt for submission
+    $outputFilePath = Join-Path -Path $scriptDirectory -ChildPath "SqlResults.txt"
+    $selectQuery = "USE [$databaseName]; SELECT * FROM Client_A_Contacts;"
+    Invoke-Sqlcmd -ServerInstance $serverInstance -Query $selectQuery -ErrorAction Stop | Out-File -FilePath $outputFilePath
+
+    Write-Host "Data from 'Client_A_Contacts' has been exported to 'SqlResults.txt'."
+
 } catch {
     Write-Host "An error occurred: $_"
 }
