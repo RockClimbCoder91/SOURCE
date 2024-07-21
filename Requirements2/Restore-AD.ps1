@@ -7,6 +7,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
+$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
@@ -21,6 +22,7 @@ function Create-OU($ouName, $domainComponents) {
     $ouPath = "OU=$ouName,$domainComponents"
     New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
     Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
+    return $ouPath
 }
 
 # Function to import users from CSV and add to the Finance OU
@@ -96,14 +98,14 @@ if (-not $ouDeleted) {
     Write-Output "Proceeding to create the OU and import users."
 }
 
-# Create the OU
-Create-OU -ouName $ouName -domainComponents $domainComponents
+# Create the OU and update $ouPath
+$ouPath = Create-OU -ouName $ouName -domainComponents $domainComponents
 
 # Import users from CSV
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
-Get-ADUser -Filter * -SearchBase "OU=Finance,DC=consultingfirm,DC=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Out-File -FilePath .\AdResults.txt
+Get-ADUser -Filter * -SearchBase $ouPath -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Out-File -FilePath .\AdResults.txt
 
 # End of script to prevent any further checks or actions
 exit
