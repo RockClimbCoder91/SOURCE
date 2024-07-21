@@ -44,10 +44,10 @@ function Import-Users($csvFilePath, $ouPath) {
 
         # Create the user
         try {
-            Write-Output "Creating user in OU: $ouPath"
+            Write-Output "Creating user '$displayName' in OU: $ouPath"
             New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
                        -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
-                       -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
+                       -Path "$ouPath" -PostalCode $postalCode -OfficePhone $officePhone `
                        -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
                        -Enabled $true
             Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
@@ -113,6 +113,7 @@ if (-not $ouDeleted) {
 }
 
 Write-Output "Using OU Path: $ouPath"
+Write-Output "OU Path Type: $($ouPath.GetType().Name)"
 
 # Import users from CSV
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
