@@ -20,9 +20,14 @@ function Remove-ChildObjects($ouPath) {
 # Function to create the OU
 function Create-OU($ouName, $domainComponents) {
     $ouPath = "OU=$ouName,$domainComponents"
-    New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
-    Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
-    return $ouPath
+    try {
+        New-ADOrganizationalUnit -Name $ouName -Path $domainComponents -ErrorAction Stop
+        Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
+        return $ouPath
+    } catch {
+        Write-Output "Failed to create the Organizational Unit (OU). Error: $_"
+        throw $_
+    }
 }
 
 # Function to import users from CSV and add to the Finance OU
@@ -54,9 +59,14 @@ function Import-Users($csvFilePath, $ouPath) {
 
 # Function to disable protection from accidental deletion
 function Disable-DeletionProtection($ouPath) {
-    $ou = Get-ADOrganizationalUnit -Identity $ouPath
-    $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
-    Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
+    try {
+        $ou = Get-ADOrganizationalUnit -Identity $ouPath -ErrorAction Stop
+        $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false -ErrorAction Stop
+        Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
+    } catch {
+        Write-Output "Failed to disable deletion protection for the OU. Error: $_"
+        throw $_
+    }
 }
 
 # Check if the OU exists
@@ -81,7 +91,7 @@ if ($ou) {
 
         # Delete the OU
         Write-Output "Deleting the Organizational Unit (OU) named '$ouName'..."
-        Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
+        Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false -ErrorAction Stop
 
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
