@@ -104,7 +104,7 @@ if (-not $ouDeleted) {
 
 Write-Output "Using OU Path: $ouPath"
 
-# Import users from CSV
+# Import users from CSV file
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
