@@ -7,6 +7,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
+$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
