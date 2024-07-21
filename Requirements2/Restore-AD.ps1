@@ -7,6 +7,7 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
+$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects {
@@ -42,6 +43,7 @@ function Import-Users {
         [string]$csvFilePath,
         [string]$ouPath
     )
+    Write-Output "Importing users into OU Path: $ouPath"
     $users = Import-Csv -Path $csvFilePath
     foreach ($user in $users) {
         $firstName = $user.First_Name
@@ -86,9 +88,7 @@ function Disable-DeletionProtection {
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
-$ouPath = "OU=$ouName,$domainComponents"
 $ouDeleted = $false
-
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
     $ouPath = $ou.DistinguishedName
