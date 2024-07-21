@@ -7,7 +7,6 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
-$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects {
@@ -87,6 +86,9 @@ function Disable-DeletionProtection {
 Write-Output "Checking for the existence of the Organizational Unit (OU) named '$ouName'..."
 $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainComponents -ErrorAction SilentlyContinue
 
+$ouPath = "OU=$ouName,$domainComponents"
+$ouDeleted = $false
+
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
     $ouPath = $ou.DistinguishedName
@@ -106,9 +108,11 @@ if ($ou) {
 
         # Confirm deletion
         Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully deleted."
+        $ouDeleted = $true
     } catch {
         if ($_.Exception.Message -like "*Directory object not found*") {
             Write-Output "The Organizational Unit (OU) named '$ouName' was already deleted."
+            $ouDeleted = $true
         } else {
             Write-Output "An unexpected error occurred while attempting to delete the Organizational Unit (OU) named '$ouName'. Error: $_"
             exit 1
@@ -116,8 +120,10 @@ if ($ou) {
     }
 }
 
-Write-Output "Creating the OU and importing users."
-$ouPath = Create-OU -ouName $ouName -domainComponents $domainComponents
+if (-not $ouDeleted) {
+    Write-Output "Proceeding to create the OU and import users."
+    $ouPath = Create-OU -ouName $ouName -domainComponents $domainComponents
+}
 
 Write-Output "Using OU Path: $ouPath"
 
