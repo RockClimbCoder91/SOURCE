@@ -19,14 +19,8 @@ function Remove-ChildObjects($ouPath) {
 # Function to create the OU
 function Create-OU($ouName, $domainComponents) {
     $ouPath = "OU=$ouName,$domainComponents"
-    try {
-        New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
-        Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
-        return $ouPath
-    } catch {
-        Write-Output "Failed to create the Organizational Unit (OU). Error: $_"
-        throw $_
-    }
+    New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
+    Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
 }
 
 # Function to import users from CSV and add to the Finance OU
@@ -43,29 +37,21 @@ function Import-Users($csvFilePath, $ouPath) {
         $userPrincipalName = "$samAccountName@consultingfirm.com"
 
         # Create the user
-        try {
-            New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
-                       -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
-                       -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
-                       -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
-                       -Enabled $true
-            Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
-        } catch {
-            Write-Output "Failed to create user '$displayName'. Error: $_"
-        }
+        New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
+                   -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
+                   -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
+                   -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
+                   -Enabled $true
+
+        Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
     }
 }
 
 # Function to disable protection from accidental deletion
 function Disable-DeletionProtection($ouPath) {
-    try {
-        $ou = Get-ADOrganizationalUnit -Identity $ouPath
-        $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
-        Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
-    } catch {
-        Write-Output "Failed to disable deletion protection for the OU. Error: $_"
-        throw $_
-    }
+    $ou = Get-ADOrganizationalUnit -Identity $ouPath
+    $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
+    Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
 }
 
 # Check if the OU exists
@@ -76,9 +62,11 @@ $ouDeleted = $false
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
     Write-Output "Distinguished Name: $($ou.DistinguishedName)"
-    $ouPath = $ou.DistinguishedName
 
     try {
+        # Retrieve the DistinguishedName of the OU
+        $ouPath = $ou.DistinguishedName
+
         # Disable deletion protection
         Disable-DeletionProtection -ouPath $ouPath
 
@@ -106,18 +94,16 @@ if ($ou) {
 
 if (-not $ouDeleted) {
     Write-Output "Proceeding to create the OU and import users."
-    $ouPath = Create-OU -ouName $ouName -domainComponents $domainComponents
 }
 
-Write-Output "Using OU Path: $ouPath"
+# Create the OU
+Create-OU -ouName $ouName -domainComponents $domainComponents
 
 # Import users from CSV
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
-Get-ADUser -Filter * -SearchBase $ouPath -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | 
-Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | 
-Out-File -FilePath .\AdResults.txt
+Get-ADUser -Filter * -SearchBase "OU=Finance,DC=consultingfirm,DC=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Out-File -FilePath .\AdResults.txt
 
 # End of script to prevent any further checks or actions
 exit
