@@ -7,7 +7,6 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
-$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
 function Remove-ChildObjects($ouPath) {
@@ -42,7 +41,7 @@ function Import-Users($csvFilePath, $ouPath) {
         try {
             New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
                        -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
-                       -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
+                       -Path "$ouPath" -PostalCode $postalCode -OfficePhone $officePhone `
                        -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
                        -Enabled $true
             Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
@@ -104,12 +103,12 @@ if (-not $ouDeleted) {
 
 Write-Output "Using OU Path: $ouPath"
 
-# Import users from CSV file
+# Import users from CSV
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
 try {
-    Get-ADUser -Filter * -SearchBase $ouPath -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | 
+    Get-ADUser -Filter * -SearchBase "$ouPath" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | 
     Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | 
     Out-File -FilePath .\AdResults.txt
     Write-Output "Data from 'Client_A_Contacts' has been exported to 'AdResults.txt'."
