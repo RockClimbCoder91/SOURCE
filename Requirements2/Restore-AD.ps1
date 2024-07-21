@@ -7,13 +7,9 @@ Import-Module ActiveDirectory
 $ouName = "Finance"
 $domainComponents = "DC=consultingfirm,DC=com"
 $csvFilePath = Join-Path -Path $PSScriptRoot -ChildPath "financePersonnel.csv"
-$ouPath = "OU=$ouName,$domainComponents"
 
 # Function to remove all child objects within the OU
-function Remove-ChildObjects {
-    param (
-        [string]$ouPath
-    )
+function Remove-ChildObjects($ouPath) {
     $childObjects = Get-ADObject -Filter * -SearchBase $ouPath
     foreach ($child in $childObjects) {
         Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false -Recursive
@@ -21,29 +17,14 @@ function Remove-ChildObjects {
 }
 
 # Function to create the OU
-function Create-OU {
-    param (
-        [string]$ouName,
-        [string]$domainComponents
-    )
+function Create-OU($ouName, $domainComponents) {
     $ouPath = "OU=$ouName,$domainComponents"
-    try {
-        New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
-        Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
-        return $ouPath
-    } catch {
-        Write-Output "Failed to create the Organizational Unit (OU). Error: $_"
-        throw $_
-    }
+    New-ADOrganizationalUnit -Name $ouName -Path $domainComponents
+    Write-Output "The Organizational Unit (OU) named '$ouName' has been successfully created."
 }
 
 # Function to import users from CSV and add to the Finance OU
-function Import-Users {
-    param (
-        [string]$csvFilePath,
-        [string]$ouPath
-    )
-    Write-Output "Importing users into OU Path: $ouPath"
+function Import-Users($csvFilePath, $ouPath) {
     $users = Import-Csv -Path $csvFilePath
     foreach ($user in $users) {
         $firstName = $user.First_Name
@@ -56,32 +37,21 @@ function Import-Users {
         $userPrincipalName = "$samAccountName@consultingfirm.com"
 
         # Create the user
-        try {
-            New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
-                       -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
-                       -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
-                       -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
-                       -Enabled $true
-            Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
-        } catch {
-            Write-Output "Failed to create user '$displayName'. Error: $_"
-        }
+        New-ADUser -Name $displayName -GivenName $firstName -Surname $lastName -DisplayName $displayName `
+                   -UserPrincipalName $userPrincipalName -SamAccountName $samAccountName `
+                   -Path $ouPath -PostalCode $postalCode -OfficePhone $officePhone `
+                   -MobilePhone $mobilePhone -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
+                   -Enabled $true
+
+        Write-Output "User '$displayName' has been created and added to the OU '$ouName'."
     }
 }
 
 # Function to disable protection from accidental deletion
-function Disable-DeletionProtection {
-    param (
-        [string]$ouPath
-    )
-    try {
-        $ou = Get-ADOrganizationalUnit -Identity $ouPath
-        $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
-        Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
-    } catch {
-        Write-Output "Failed to disable deletion protection for the OU. Error: $_"
-        throw $_
-    }
+function Disable-DeletionProtection($ouPath) {
+    $ou = Get-ADOrganizationalUnit -Identity $ouPath
+    $ou | Set-ADObject -ProtectedFromAccidentalDeletion $false
+    Write-Output "The Organizational Unit (OU) named '$ouName' is no longer protected from accidental deletion."
 }
 
 # Check if the OU exists
@@ -91,10 +61,12 @@ $ou = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $domainC
 $ouDeleted = $false
 if ($ou) {
     Write-Output "The Organizational Unit (OU) named '$ouName' exists."
-    $ouPath = $ou.DistinguishedName
-    Write-Output "Distinguished Name: $ouPath"
+    Write-Output "Distinguished Name: $($ou.DistinguishedName)"
 
     try {
+        # Retrieve the DistinguishedName of the OU
+        $ouPath = $ou.DistinguishedName
+
         # Disable deletion protection
         Disable-DeletionProtection -ouPath $ouPath
 
@@ -122,23 +94,16 @@ if ($ou) {
 
 if (-not $ouDeleted) {
     Write-Output "Proceeding to create the OU and import users."
-    $ouPath = Create-OU -ouName $ouName -domainComponents $domainComponents
 }
 
-Write-Output "Using OU Path: $ouPath"
+# Create the OU
+Create-OU -ouName $ouName -domainComponents $domainComponents
 
 # Import users from CSV
 Import-Users -csvFilePath $csvFilePath -ouPath $ouPath
 
 # Generate the output file for submission
-try {
-    Get-ADUser -Filter * -SearchBase $ouPath -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | 
-    Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | 
-    Out-File -FilePath .\AdResults.txt
-    Write-Output "Data from 'Client_A_Contacts' has been exported to 'AdResults.txt'."
-} catch {
-    Write-Output "Failed to export data to 'AdResults.txt': $_"
-}
+Get-ADUser -Filter * -SearchBase "OU=Finance,DC=consultingfirm,DC=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Out-File -FilePath .\AdResults.txt
 
 # End of script to prevent any further checks or actions
 exit
