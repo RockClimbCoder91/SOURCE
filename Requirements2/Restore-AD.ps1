@@ -39,15 +39,13 @@ $users = Import-Csv -Path $csvPath
 
 # Loop through each user in the CSV file and create the AD account
 foreach ($user in $users) {
-    $firstName = $user.FirstName
-    $lastName = $user.LastName
+    $firstName = $user.First_Name
+    $lastName = $user.Last_Name
     $displayName = "$firstName $lastName"
     $postalCode = $user.PostalCode
     $officePhone = $user.OfficePhone
     $mobilePhone = $user.MobilePhone
-
-    # Define the sAMAccountName (unique username) and userPrincipalName
-    $samAccountName = "$firstName.$lastName"
+    $samAccountName = $user.samAccount
     $userPrincipalName = "$samAccountName@consultingfirm.com"
 
     # Create the user in Active Directory
