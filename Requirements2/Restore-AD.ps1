@@ -30,3 +30,39 @@ try {
 } catch {
     Write-Output "Error: $_"
 }
+
+# Define the path to the CSV file
+$csvPath = "$PSScriptRoot\financePersonnel.csv"
+
+# Import the CSV file
+$users = Import-Csv -Path $csvPath
+
+# Loop through each user in the CSV file and create the AD account
+foreach ($user in $users) {
+    $firstName = $user.FirstName
+    $lastName = $user.LastName
+    $displayName = "$firstName $lastName"
+    $postalCode = $user.PostalCode
+    $officePhone = $user.OfficePhone
+    $mobilePhone = $user.MobilePhone
+
+    # Define the sAMAccountName (unique username) and userPrincipalName
+    $samAccountName = "$firstName.$lastName"
+    $userPrincipalName = "$samAccountName@consultingfirm.com"
+
+    # Create the user in Active Directory
+    New-ADUser `
+        -GivenName $firstName `
+        -Surname $lastName `
+        -DisplayName $displayName `
+        -PostalCode $postalCode `
+        -OfficePhone $officePhone `
+        -MobilePhone $mobilePhone `
+        -SamAccountName $samAccountName `
+        -UserPrincipalName $userPrincipalName `
+        -Path $ouPath `
+        -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
+        -Enabled $true
+
+    Write-Output "Created user: $displayName"
+}
