@@ -60,7 +60,9 @@ foreach ($user in $users) {
         -UserPrincipalName $userPrincipalName `
         -Path $ouPath `
         -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
-        -Enabled $true
+        -Enabled $true `
+        -PasswordNeverExpires $true `
+        -ChangePasswordAtLogon $false
 
     Write-Output "Created user: $displayName"
 }
