@@ -3,16 +3,15 @@
 # Import the Active Directory module
 Import-Module ActiveDirectory
 
-# Define the OU name and path
+# Define the OU name
 $ouName = "Finance"
-$ouPath = "OU=Finance,DC=example,DC=com"
 
-# Check if the OU exists
+# Search for the OU
 $ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -ErrorAction SilentlyContinue
 
 if ($ouExists) {
-    # OU exists, so delete it
-    Remove-ADOrganizationalUnit -Identity $ouPath -Confirm:$false
+    # OU exists, so delete it using its DN
+    Remove-ADOrganizationalUnit -Identity $ouExists.DistinguishedName -Confirm:$false
     Write-Output "The OU 'Finance' existed and has been deleted."
 } else {
     # OU does not exist
