@@ -5,7 +5,8 @@ Import-Module ActiveDirectory
 
 # Define the OU name and path
 $ouName = "Finance"
-$ouPath = "OU=Finance,DC=example,DC=com"
+$ouPath = "OU=Finance,DC=consultingfirm,DC=com"
+$parentPath = "DC=consultingfirm,DC=com"
 
 # Search for the OU
 $ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -ErrorAction SilentlyContinue
@@ -22,6 +23,13 @@ if ($ouExists) {
     Write-Output "The OU 'Finance' does not exist."
 }
 
-# Create a new OU
-New-ADOrganizationalUnit -Name $ouName -Path "DC=example,DC=com" -ProtectedFromAccidentalDeletion $true
-Write-Output "The OU 'Finance' has been created."
+try {
+    # Check if the parent container exists
+    $parentExists = Get-ADOrganizationalUnit -Identity $parentPath -ErrorAction Stop
+
+    # Create a new OU
+    New-ADOrganizationalUnit -Name $ouName -Path $parentPath -ProtectedFromAccidentalDeletion $true
+    Write-Output "The OU 'Finance' has been created."
+} catch {
+    Write-Output "Error: $_"
+}
