@@ -80,3 +80,8 @@ foreach ($user in $users) {
         Write-Output "Error creating user ${displayName}: $_"
     }
 }
+
+# Generate an output file for submission
+Get-ADUser -Filter * -SearchBase "ou=Finance,dc=consultingfirm,dc=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Export-Csv -Path "$PSScriptRoot\AdResults.csv" -NoTypeInformation
+
+Write-Output "Output file AdResults.csv has been generated."
