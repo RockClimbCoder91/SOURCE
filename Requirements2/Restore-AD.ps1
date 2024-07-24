@@ -47,11 +47,13 @@ foreach ($user in $users) {
     $mobilePhone = $user.MobilePhone
     $samAccountName = $user.samAccount
     $userPrincipalName = "$samAccountName@consultingfirm.com"
+    $name = "$firstName $lastName"
 
     # Create the user in Active Directory
     New-ADUser `
         -GivenName $firstName `
         -Surname $lastName `
+        -Name $name `
         -DisplayName $displayName `
         -PostalCode $postalCode `
         -OfficePhone $officePhone `
