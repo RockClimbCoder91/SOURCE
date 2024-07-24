@@ -77,6 +77,6 @@ foreach ($user in $users) {
 
         Write-Output "Created user: $displayName"
     } catch {
-        Write-Output "Error creating user $displayName: $_"
+        Write-Output "Error creating user ${displayName}: $_"
     }
 }
