@@ -12,6 +12,14 @@ $ouPath = "OU=Finance,$parentPath"
 $ouExists = Get-ADOrganizationalUnit -Filter "Name -eq '$ouName'" -SearchBase $parentPath -ErrorAction SilentlyContinue
 
 if ($ouExists) {
+    # Get all child objects of the OU
+    $childObjects = Get-ADObject -Filter * -SearchBase $ouExists.DistinguishedName -SearchScope OneLevel
+
+    # Remove all child objects
+    foreach ($child in $childObjects) {
+        Remove-ADObject -Identity $child.DistinguishedName -Confirm:$false
+    }
+
     # Remove protection from accidental deletion
     Set-ADOrganizationalUnit -Identity $ouExists.DistinguishedName -ProtectedFromAccidentalDeletion $false
 
@@ -49,22 +57,26 @@ foreach ($user in $users) {
     $userPrincipalName = "$samAccountName@consultingfirm.com"
     $name = "$firstName $lastName"
 
-    # Create the user in Active Directory
-    New-ADUser `
-        -GivenName $firstName `
-        -Surname $lastName `
-        -Name $name `
-        -DisplayName $displayName `
-        -PostalCode $postalCode `
-        -OfficePhone $officePhone `
-        -MobilePhone $mobilePhone `
-        -SamAccountName $samAccountName `
-        -UserPrincipalName $userPrincipalName `
-        -Path $ouPath `
-        -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
-        -Enabled $true `
-        -PasswordNeverExpires $true `
-        -ChangePasswordAtLogon $false
+    try {
+        # Create the user in Active Directory
+        New-ADUser `
+            -GivenName $firstName `
+            -Surname $lastName `
+            -Name $name `
+            -DisplayName $displayName `
+            -PostalCode $postalCode `
+            -OfficePhone $officePhone `
+            -MobilePhone $mobilePhone `
+            -SamAccountName $samAccountName `
+            -UserPrincipalName $userPrincipalName `
+            -Path $ouPath `
+            -AccountPassword (ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force) `
+            -Enabled $true `
+            -PasswordNeverExpires $true `
+            -ChangePasswordAtLogon $false
 
-    Write-Output "Created user: $displayName"
+        Write-Output "Created user: $displayName"
+    } catch {
+        Write-Output "Error creating user $displayName: $_"
+    }
 }
