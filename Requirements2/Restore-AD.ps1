@@ -82,6 +82,6 @@ foreach ($user in $users) {
 }
 
 # Generate an output file for submission
-Get-ADUser -Filter * -SearchBase "ou=Finance,dc=consultingfirm,dc=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Export-Csv -Path "$PSScriptRoot\AdResults.csv" -NoTypeInformation
+Get-ADUser -Filter * -SearchBase "ou=Finance,dc=consultingfirm,dc=com" -Properties DisplayName,PostalCode,OfficePhone,MobilePhone | Select-Object DisplayName,PostalCode,OfficePhone,MobilePhone | Format-Table -AutoSize | Out-File "$PSScriptRoot\AdResults.txt"
 
-Write-Output "Output file AdResults.csv has been generated."
+Write-Output "Output file AdResults.txt has been generated."
